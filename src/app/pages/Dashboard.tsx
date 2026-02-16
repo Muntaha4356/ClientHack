@@ -24,10 +24,26 @@ export function Dashboard() {
     remaining_balance: 0,
     financial_health: 0,
   });
+  
 
   const [categoricalExpenses, setCategoricalExpenses] = useState<
     { category_name: string; money: number; color: string }[]
   >([]);
+
+  
+
+  //Colors
+  const categoryColors: { [key: string]: string } = {
+    Food: '#F59E0B',            // amber-500
+    Transportation: '#3B82F6',  // blue-500
+    Entertainment: '#8B5CF6',   // purple-500
+    Shopping: '#EC4899',        // pink-500
+    Utilities: '#10B981',       // green-500
+    Salary: '#6366F1',          // indigo-500
+    Income: '#14B8A6',          // teal-500
+    Other: '#9CA3AF',           // gray-400
+  };
+
 
 
   async function getUserInfo() {
@@ -45,7 +61,9 @@ export function Dashboard() {
   async function getCategoricalExpenses() {
     try {
       const response = await apiClient.get('/expenses/categorical');
-      return response.data.data; // array of { category_name, money, color }
+      const data = response.data.data; 
+      const updatedData = data.map((item) => ({ ...item, color: categoryColors[item.category_name] || categoryColors["Other"], }));
+      return updatedData;
     } catch (error) {
       console.error('Failed to fetch categorical expenses:', error);
       return [];
@@ -83,10 +101,9 @@ export function Dashboard() {
         });
       }
 
-      const expensesData = await getCategoricalExpenses();
-      if (expensesData && expensesData.length > 0) {
-        setCategoricalExpenses(expensesData);
-      }
+      const expensesData = await getCategoricalExpenses(); 
+      if (expensesData && expensesData.length > 0) { 
+        setCategoricalExpenses(expensesData); }
 
 
       const transactionsData = await getRecentTransactions(10);
@@ -153,7 +170,7 @@ export function Dashboard() {
 
             <Card>
               <div className="flex items-center justify-center">
-                <ProgressRing progress={userInfo.financial_health} />
+                <ProgressRing progress={userInfo.financial_health}  />
               </div>
               <p className="text-center text-sm text-muted-foreground mt-2">Financial Health</p>
             </Card>
