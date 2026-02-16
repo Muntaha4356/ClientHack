@@ -6,6 +6,8 @@ import { Button } from '../components/Button';
 import { Input } from '../components/Input';
 import { AIChat } from '../components/AIChat';
 import { User, Mail, DollarSign, Lock } from 'lucide-react';
+import apiClient from '../../utils/apiClient';
+
 
 export function Profile() {
   const [profile, setProfile] = useState({
@@ -20,33 +22,91 @@ export function Profile() {
     confirm: ''
   });
 
+  const [loading, setLoading] = useState(false);  
+
   useEffect(() => {
-    // Load user data from localStorage
-    const userData = localStorage.getItem('user');
-    if (userData) {
-      const data = JSON.parse(userData);
-      setProfile({
-        fullName: data.fullName || '',
-        email: data.email || '',
-        monthlyIncome: data.monthlyIncome || ''
-      });
-    }
+    const fetchProfile = async () => {
+      try {
+        setLoading(true);
+
+        const response = await apiClient.get("/user/profile");
+        const data = response.data.data;
+
+        setProfile({
+          fullName: data.fullName || "",
+          email: data.email || "",
+          monthlyIncome: data.monthlyIncome || "",
+        });
+
+      } catch (error: unknown) {
+        console.error("Failed to fetch profile:", error);
+        alert("Could not load profile");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProfile();
   }, []);
 
-  const handleSaveProfile = (e: React.FormEvent) => {
+
+  const handleSaveProfile = async (e: React.FormEvent) => {
     e.preventDefault();
-    localStorage.setItem('user', JSON.stringify(profile));
-    alert('Profile updated successfully!');
+
+    try {
+      setLoading(true);
+
+      const response = await apiClient.put("/user/profile", {
+        fullName: profile.fullName,
+        monthlyIncome: profile.monthlyIncome,
+      });
+
+      setProfile(prev => ({
+        ...prev,
+        ...response.data.data,
+      }));
+
+      alert("Profile updated successfully!");
+
+    } catch (error: unknown) {
+      console.error("Profile update failed:", error);
+      alert("Profile update failed");
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleChangePassword = (e: React.FormEvent) => {
+  const handleChangePassword = async (e: React.FormEvent) => {
     e.preventDefault();
+
     if (password.new !== password.confirm) {
-      alert('New passwords do not match!');
+      alert("New passwords do not match!");
       return;
     }
-    alert('Password changed successfully!');
-    setPassword({ current: '', new: '', confirm: '' });
+
+    try {
+      setLoading(true);
+
+      const response = await apiClient.post("/user/change-password", {
+        current: password.current,
+        new: password.new,
+        confirm: password.confirm,
+      });
+
+      alert(response.data.message || "Password changed!");
+
+      setPassword({
+        current: "",
+        new: "",
+        confirm: "",
+      });
+
+    } catch (error: unknown) {
+      console.error("Password change failed:", error);
+      alert("Password change failed");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -103,7 +163,7 @@ export function Profile() {
                   />
                 </div>
 
-                <div className="space-y-2">
+                {/* <div className="space-y-2">
                   <label className="text-sm flex items-center gap-2">
                     <Mail className="w-4 h-4 text-muted-foreground" />
                     Email Address
@@ -115,7 +175,7 @@ export function Profile() {
                     className="w-full px-4 py-3 rounded-xl bg-input-background border border-border text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
                     placeholder="john@university.edu"
                   />
-                </div>
+                </div> */}
 
                 <div className="space-y-2">
                   <label className="text-sm flex items-center gap-2">
