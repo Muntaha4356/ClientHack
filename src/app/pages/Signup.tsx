@@ -4,6 +4,7 @@ import { Shield } from 'lucide-react';
 import { Button } from '../components/Button';
 import { Input } from '../components/Input';
 import { Card } from '../components/Card';
+import apiClient from '../../utils/apiClient';
 
 export function Signup() {
   const navigate = useNavigate();
@@ -14,12 +15,45 @@ export function Signup() {
     monthlyIncome: ''
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = async (e: React.FormEvent) => {
+    try {
+      e.preventDefault();
     // Store user data (in real app, this would be sent to backend)
     localStorage.setItem('user', JSON.stringify(formData));
-    navigate('/dashboard');
+    
+
+    const response = await apiClient.post('/auth/register', formData);
+
+    if (response.data.success) {
+      localStorage.setItem('token', response.data.token);
+      navigate('/dashboard');
+      return response.data.user;
+    }
+    } catch (error: any) {
+      console.error('Registration failed:', error.response.data.message);
+      throw error;
+    }
+    
   };
+
+//   async function registerUser(fullName, email, password, monthlyIncome) {
+//   try {
+//     const response = await apiClient.post('/auth/register', {
+//       fullName,
+//       email,
+//       password,
+//       monthlyIncome,
+//     });
+
+//     if (response.data.success) {
+//       localStorage.setItem('token', response.data.token);
+//       return response.data.user;
+//     }
+//   } catch (error) {
+//     console.error('Registration failed:', error.response.data.message);
+//     throw error;
+//   }
+// }
 
   return (
     <div className="min-h-screen flex items-center justify-center p-8 relative overflow-hidden">

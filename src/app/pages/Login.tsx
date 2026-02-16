@@ -4,6 +4,7 @@ import { Shield } from 'lucide-react';
 import { Button } from '../components/Button';
 import { Input } from '../components/Input';
 import { Card } from '../components/Card';
+import apiClient from '../../utils/apiClient';
 
 export function Login() {
   const navigate = useNavigate();
@@ -12,10 +13,41 @@ export function Login() {
     password: ''
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    navigate('/dashboard');
+  const handleSubmit = async (e: React.FormEvent) => {
+
+    try {
+      e.preventDefault();
+       const response = await apiClient.post('/auth/login', formData);
+
+    if (response.data.success) {
+      localStorage.setItem('token', response.data.token);
+      navigate('/dashboard');
+      return response.data.user;
+    }
+    } catch (error: any) {
+      console.error('Login failed:', error.response.data.message);
+      throw error;
+    }
+    
+    
   };
+
+//   async function loginUser(email, password) {
+//   try {
+//     const response = await apiClient.post('/auth/login', {
+//       email,
+//       password,
+//     });
+
+//     if (response.data.success) {
+//       localStorage.setItem('token', response.data.token);
+//       return response.data.user;
+//     }
+//   } catch (error) {
+//     console.error('Login failed:', error.response.data.message);
+//     throw error;
+//   }
+// }
 
   return (
     <div className="min-h-screen flex items-center justify-center p-8 relative overflow-hidden">
