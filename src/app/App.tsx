@@ -1,5 +1,6 @@
 import React from 'react';
 import { createBrowserRouter, RouterProvider } from 'react-router';
+import { NotificationProvider } from './context/NotificationContext';
 
 import { Landing } from './pages/Landing';
 import { Signup } from './pages/Signup';
@@ -74,8 +75,10 @@ const router = createBrowserRouter([
 
 export default function App() {
   return (
-    <div className="dark">
-      <RouterProvider router={router} />
-    </div>
+    <NotificationProvider>
+      <div className="dark">
+        <RouterProvider router={router} />
+      </div>
+    </NotificationProvider>
   );
 }

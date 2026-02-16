@@ -1,58 +1,16 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { X, AlertTriangle, CheckCircle, Info, Shield, Trash2, Check } from 'lucide-react';
+import { useNotifications } from '../context/NotificationContext';
 
 interface Notification {
-  id: number;
-  type: 'alert' | 'success' | 'info' | 'warning';
+  id: string;
+  type: 'alert' | 'success' | 'info' | 'warning' | 'failure';
   title: string;
   message: string;
-  timestamp: Date;
+  timestamp: string;
   read: boolean;
 }
-
-const mockNotifications: Notification[] = [
-  {
-    id: 1,
-    type: 'alert',
-    title: 'Suspicious Transaction Detected',
-    message: 'A $350 charge from "Unknown Merchant" was flagged by our fraud detection system.',
-    timestamp: new Date(Date.now() - 3600000),
-    read: false
-  },
-  {
-    id: 2,
-    type: 'warning',
-    title: 'Budget Limit Warning',
-    message: 'You\'ve spent 85% of your monthly entertainment budget ($127.50 of $150).',
-    timestamp: new Date(Date.now() - 7200000),
-    read: false
-  },
-  {
-    id: 3,
-    type: 'success',
-    title: 'Savings Goal Achieved',
-    message: 'Congratulations! You\'ve reached your savings goal of $1,000 for this month.',
-    timestamp: new Date(Date.now() - 86400000),
-    read: true
-  },
-  {
-    id: 4,
-    type: 'info',
-    title: 'Monthly Report Ready',
-    message: 'Your financial summary for January 2026 is now available to view.',
-    timestamp: new Date(Date.now() - 172800000),
-    read: true
-  },
-  {
-    id: 5,
-    type: 'alert',
-    title: 'Unusual Spending Pattern',
-    message: 'Your food expenses are 40% higher than usual this week.',
-    timestamp: new Date(Date.now() - 259200000),
-    read: true
-  }
-];
 
 interface NotificationPanelProps {
   isOpen: boolean;
@@ -60,10 +18,8 @@ interface NotificationPanelProps {
 }
 
 export function NotificationPanel({ isOpen, onClose }: NotificationPanelProps) {
-  const [notifications, setNotifications] = useState<Notification[]>(mockNotifications);
+  const { notifications, unreadCount, loading, markAsRead, deleteNotification, markAllAsRead } = useNotifications();
   const [filter, setFilter] = useState<'all' | 'unread'>('all');
-
-  const unreadCount = notifications.filter(n => !n.read).length;
 
   const getIcon = (type: Notification['type']) => {
     switch (type) {
@@ -73,6 +29,8 @@ export function NotificationPanel({ isOpen, onClose }: NotificationPanelProps) {
         return <AlertTriangle className="w-4 h-4 text-yellow-400" />;
       case 'success':
         return <CheckCircle className="w-4 h-4 text-green-400" />;
+      case 'failure':
+        return <X className="w-4 h-4 text-orange-400" />;
       case 'info':
         return <Info className="w-4 h-4 text-blue-400" />;
     }
@@ -86,33 +44,11 @@ export function NotificationPanel({ isOpen, onClose }: NotificationPanelProps) {
         return 'bg-yellow-500/10';
       case 'success':
         return 'bg-green-500/10';
+      case 'failure':
+        return 'bg-orange-500/10';
       case 'info':
         return 'bg-blue-500/10';
     }
-  };
-
-  const markAsRead = (id: number) => {
-    setNotifications(notifications.map(n => 
-      n.id === id ? { ...n, read: true } : n
-    ));
-  };
-
-  const markAllAsRead = () => {
-    setNotifications(notifications.map(n => ({ ...n, read: true })));
-  };
-
-  const deleteNotification = (id: number) => {
-    setNotifications(notifications.filter(n => n.id !== id));
-  };
-
-  const getRelativeTime = (date: Date) => {
-    const seconds = Math.floor((Date.now() - date.getTime()) / 1000);
-    
-    if (seconds < 60) return 'Just now';
-    if (seconds < 3600) return `${Math.floor(seconds / 60)}m ago`;
-    if (seconds < 86400) return `${Math.floor(seconds / 3600)}h ago`;
-    if (seconds < 604800) return `${Math.floor(seconds / 86400)}d ago`;
-    return date.toLocaleDateString();
   };
 
   const filteredNotifications = filter === 'unread' 
@@ -206,7 +142,12 @@ export function NotificationPanel({ isOpen, onClose }: NotificationPanelProps) {
 
             {/* Notifications List */}
             <div className="flex-1 overflow-y-auto p-4 space-y-3">
-              {filteredNotifications.length === 0 ? (
+              {loading ? (
+                <div className="flex flex-col items-center justify-center h-full">
+                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+                  <p className="text-muted-foreground mt-4">Loading notifications...</p>
+                </div>
+              ) : filteredNotifications.length === 0 ? (
                 <div className="flex flex-col items-center justify-center h-full text-center p-8">
                   <div className="w-16 h-16 bg-muted/30 rounded-full flex items-center justify-center mb-4">
                     <CheckCircle className="w-8 h-8 text-muted-foreground" />
@@ -251,7 +192,7 @@ export function NotificationPanel({ isOpen, onClose }: NotificationPanelProps) {
                         </p>
                         <div className="flex items-center justify-between">
                           <p className="text-xs text-muted-foreground">
-                            {getRelativeTime(notification.timestamp)}
+                            {notification.timestamp}
                           </p>
                           <div className="flex items-center gap-1">
                             {!notification.read && (

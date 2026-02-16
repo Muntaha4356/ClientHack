@@ -2,10 +2,12 @@ import React from 'react';
 import { Link, useLocation, useNavigate } from 'react-router';
 import { LayoutDashboard, ArrowLeftRight, TrendingUp, User, LogOut, Shield } from 'lucide-react';
 import apiClient from '../../utils/apiClient';
+import { useNotifications } from '../context/NotificationContext';
 
 export function Sidebar() {
   const location = useLocation();
   const navigate = useNavigate();
+  const { clearNotifications } = useNotifications();
 
   const menuItems = [
     { icon: LayoutDashboard, label: 'Dashboard', path: '/dashboard' },
@@ -16,14 +18,14 @@ export function Sidebar() {
 
   const handleLogout = async () => {
     try {
-    await apiClient.post('/auth/logout');
-    localStorage.removeItem('user');
-    localStorage.removeItem('token');
-    navigate('/');
-  } catch (error) {
-    console.error('Logout error:', error);
-  }
-    
+      await apiClient.post('/auth/logout');
+      clearNotifications();
+      localStorage.removeItem('user');
+      localStorage.removeItem('token');
+      navigate('/');
+    } catch (error) {
+      console.error('Logout error:', error);
+    }
   };
 
   return (
