@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Bell } from 'lucide-react';
 import { NotificationPanel } from './NotificationPanel';
+import apiClient from '../../utils/apiClient';
 
 interface HeaderProps {
   userName?: string;
@@ -9,12 +10,42 @@ interface HeaderProps {
 export function Header({ userName = 'Student' }: HeaderProps) {
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
   const unreadCount = 2; // You can make this dynamic later
+  const [loading, setLoading] = useState(false);
+  const [profile, setProfile] = useState({
+    fullName: '',
+    email: '',
+    monthlyIncome: ''
+  });
+  useEffect (() => {
+    const fetchProfile = async () => {
+      try {
+        setLoading(true);
+
+        const response = await apiClient.get("/user/profile");
+        const data = response.data.data;
+
+        setProfile({
+          fullName: data.fullName || "",
+          email: data.email || "",
+          monthlyIncome: data.monthlyIncome || "",
+        });
+
+      } catch (error: unknown) {
+        console.error("Failed to fetch profile:", error);
+        alert("Could not load profile");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProfile();
+  }, []);
 
   return (
     <>
       <header className="bg-background border-b border-border px-8 py-6 flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold">Welcome back, {userName}! 👋</h1>
+          <h1 className="text-2xl font-bold">Welcome back, {profile.fullName || userName}! 👋</h1>
           <p className="text-muted-foreground text-sm mt-1">Here's what's happening with your finances today</p>
         </div>
         

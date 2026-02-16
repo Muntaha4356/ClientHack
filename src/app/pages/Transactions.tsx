@@ -32,6 +32,13 @@ export function Transactions() {
     date: new Date().toISOString().split('T')[0]
   });
 
+
+  const [profile, setProfile] = useState({
+      fullName: '',
+      email: '',
+      monthlyIncome: ''
+    });
+
   const categories = ['Food', 'Transportation', 'Entertainment', 'Shopping', 'Utilities', 'Salary', 'Income', 'Other'];
 
   async function getAllTransactions() {
@@ -124,6 +131,7 @@ export function Transactions() {
   };
 
 
+
   useEffect(() => {
     fetchTransactions();
   }, []);
@@ -140,7 +148,7 @@ export function Transactions() {
       <Sidebar />
 
       <div className="flex-1 overflow-auto">
-        <Header userName="Alex" />
+        <Header userName={profile.fullName.split(' ')[0] || 'User'} />
 
         <main className="p-8 space-y-8">
           {/* Header */}
