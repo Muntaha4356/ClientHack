@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Sidebar } from '../components/Sidebar';
 import { Header } from '../components/Header';
 import { Card } from '../components/Card';
@@ -7,6 +7,7 @@ import { Button } from '../components/Button';
 import { Input } from '../components/Input';
 import { AIChat } from '../components/AIChat';
 import { Plus, Edit2, Trash2, Filter } from 'lucide-react';
+import apiClient from '../../utils/apiClient';
 
 interface Transaction {
   id: number;
@@ -18,14 +19,8 @@ interface Transaction {
 }
 
 export function Transactions() {
-  const [transactions, setTransactions] = useState<Transaction[]>([
-    { id: 1, description: 'Salary Deposit', category: 'Salary', amount: 3200, type: 'income', date: '2026-02-10' },
-    { id: 2, description: 'Grocery Shopping', category: 'Food', amount: 45.50, type: 'expense', date: '2026-02-14' },
-    { id: 3, description: 'Netflix', category: 'Entertainment', amount: 15.99, type: 'expense', date: '2026-02-12' },
-    { id: 4, description: 'Uber Ride', category: 'Transportation', amount: 12.30, type: 'expense', date: '2026-02-11' },
-    { id: 5, description: 'Freelance Work', category: 'Income', amount: 500, type: 'income', date: '2026-02-13' },
-  ]);
-  
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
+
   const [showModal, setShowModal] = useState(false);
   const [filterType, setFilterType] = useState<'all' | 'income' | 'expense'>('all');
   const [filterCategory, setFilterCategory] = useState('all');
@@ -39,30 +34,100 @@ export function Transactions() {
 
   const categories = ['Food', 'Transportation', 'Entertainment', 'Shopping', 'Utilities', 'Salary', 'Income', 'Other'];
 
-  const handleAddTransaction = (e: React.FormEvent) => {
-    e.preventDefault();
-    const transaction: Transaction = {
-      id: Date.now(),
-      description: newTransaction.description,
-      category: newTransaction.category,
-      amount: parseFloat(newTransaction.amount),
-      type: newTransaction.type,
-      date: newTransaction.date
-    };
-    setTransactions([transaction, ...transactions]);
-    setShowModal(false);
-    setNewTransaction({
-      description: '',
-      category: '',
-      amount: '',
-      type: 'expense',
-      date: new Date().toISOString().split('T')[0]
-    });
+  async function getAllTransactions() {
+    try {
+      const response = await apiClient.get('/transactions');
+      return response.data.data;
+    } catch (error) {
+      console.error('Failed to fetch transactions:', error);
+    }
+  }
+
+  async function addTransaction(description: string, category: string, amount: string | number, type: 'income' | 'expense', date?: string) {
+    try {
+      // simulate API call
+      const response = await apiClient.post('/transactions', {
+        description,
+        category,
+        amount: parseFloat(amount as string),
+        type,
+        date: date || new Date().toISOString().split('T')[0],
+      });
+      return response.data.data; // assuming API returns { data: { ...transaction } }
+    } catch (error) {
+      console.error('Transaction creation failed:', error);
+    }
+  }
+
+
+  // fetch transactions from API on mount (optional, can be removed if not needed)
+  const fetchTransactions = async () => {
+    try {
+      const allTransactions = await getAllTransactions(); // your API function
+
+      if (allTransactions) {
+        // normalize API response to match Transaction interface
+        const normalized = allTransactions.map((t: any) => ({
+          id: t.transaction_id,
+          description: t.transaction_description,
+          category: t.category_name,
+          amount: t.amount,
+          type: t.transaction_type,
+          date: t.created_at, // or t.updated_at if you prefer
+        }));
+
+        setTransactions(normalized);
+      }
+    } catch (error) {
+      console.error('Failed to fetch transactions:', error);
+    }
   };
+
+
+  const handleAddTransaction = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!newTransaction.description || !newTransaction.category || !newTransaction.amount) return;
+
+    const addedTransaction = await addTransaction(
+      newTransaction.description,
+      newTransaction.category,
+      newTransaction.amount,
+      newTransaction.type,
+      newTransaction.date
+    );
+
+    if (addedTransaction) {
+      // normalize category to string
+      const normalized = {
+        ...addedTransaction,
+        category: addedTransaction.category.name // <- extract string
+      };
+
+      setTransactions([normalized, ...transactions]); // add to state
+      setShowModal(false);
+      setNewTransaction({
+        description: '',
+        category: '',
+        amount: '',
+        type: 'expense',
+        date: new Date().toISOString().split('T')[0]
+      });
+    }
+  };
+
+
+
 
   const handleDeleteTransaction = (id: number) => {
     setTransactions(transactions.filter(t => t.id !== id));
   };
+
+
+  useEffect(() => {
+    fetchTransactions();
+  }, []);
+
 
   const filteredTransactions = transactions.filter(t => {
     if (filterType !== 'all' && t.type !== filterType) return false;
@@ -73,10 +138,10 @@ export function Transactions() {
   return (
     <div className="flex min-h-screen bg-background">
       <Sidebar />
-      
+
       <div className="flex-1 overflow-auto">
         <Header userName="Alex" />
-        
+
         <main className="p-8 space-y-8">
           {/* Header */}
           <div className="flex items-center justify-between">
@@ -101,25 +166,22 @@ export function Transactions() {
               <div className="flex gap-2">
                 <button
                   onClick={() => setFilterType('all')}
-                  className={`px-4 py-2 rounded-xl text-sm transition-all ${
-                    filterType === 'all' ? 'bg-primary text-white' : 'bg-muted/50 hover:bg-muted'
-                  }`}
+                  className={`px-4 py-2 rounded-xl text-sm transition-all ${filterType === 'all' ? 'bg-primary text-white' : 'bg-muted/50 hover:bg-muted'
+                    }`}
                 >
                   All
                 </button>
                 <button
                   onClick={() => setFilterType('income')}
-                  className={`px-4 py-2 rounded-xl text-sm transition-all ${
-                    filterType === 'income' ? 'bg-green-500 text-white' : 'bg-muted/50 hover:bg-muted'
-                  }`}
+                  className={`px-4 py-2 rounded-xl text-sm transition-all ${filterType === 'income' ? 'bg-green-500 text-white' : 'bg-muted/50 hover:bg-muted'
+                    }`}
                 >
                   Income
                 </button>
                 <button
                   onClick={() => setFilterType('expense')}
-                  className={`px-4 py-2 rounded-xl text-sm transition-all ${
-                    filterType === 'expense' ? 'bg-red-500 text-white' : 'bg-muted/50 hover:bg-muted'
-                  }`}
+                  className={`px-4 py-2 rounded-xl text-sm transition-all ${filterType === 'expense' ? 'bg-red-500 text-white' : 'bg-muted/50 hover:bg-muted'
+                    }`}
                 >
                   Expense
                 </button>
@@ -173,7 +235,7 @@ export function Transactions() {
                           <button className="p-2 hover:bg-muted rounded-lg transition-colors">
                             <Edit2 className="w-4 h-4 text-primary" />
                           </button>
-                          <button 
+                          <button
                             onClick={() => handleDeleteTransaction(transaction.id)}
                             className="p-2 hover:bg-muted rounded-lg transition-colors"
                           >
@@ -195,7 +257,7 @@ export function Transactions() {
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
           <Card className="w-full max-w-md">
             <h2 className="text-2xl font-bold mb-6">Add Transaction</h2>
-            
+
             <form onSubmit={handleAddTransaction} className="space-y-6">
               <div className="space-y-2">
                 <label className="text-sm">Type</label>
@@ -203,18 +265,16 @@ export function Transactions() {
                   <button
                     type="button"
                     onClick={() => setNewTransaction({ ...newTransaction, type: 'expense' })}
-                    className={`flex-1 px-4 py-2 rounded-xl transition-all ${
-                      newTransaction.type === 'expense' ? 'bg-red-500 text-white' : 'bg-muted/50'
-                    }`}
+                    className={`flex-1 px-4 py-2 rounded-xl transition-all ${newTransaction.type === 'expense' ? 'bg-red-500 text-white' : 'bg-muted/50'
+                      }`}
                   >
                     Expense
                   </button>
                   <button
                     type="button"
                     onClick={() => setNewTransaction({ ...newTransaction, type: 'income' })}
-                    className={`flex-1 px-4 py-2 rounded-xl transition-all ${
-                      newTransaction.type === 'income' ? 'bg-green-500 text-white' : 'bg-muted/50'
-                    }`}
+                    className={`flex-1 px-4 py-2 rounded-xl transition-all ${newTransaction.type === 'income' ? 'bg-green-500 text-white' : 'bg-muted/50'
+                      }`}
                   >
                     Income
                   </button>
@@ -266,9 +326,9 @@ export function Transactions() {
                 <Button type="submit" className="flex-1">
                   Add Transaction
                 </Button>
-                <Button 
+                <Button
                   type="button"
-                  variant="secondary" 
+                  variant="secondary"
                   onClick={() => setShowModal(false)}
                   className="flex-1"
                 >
