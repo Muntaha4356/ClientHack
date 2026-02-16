@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link, useLocation, useNavigate } from 'react-router';
 import { LayoutDashboard, ArrowLeftRight, TrendingUp, User, LogOut, Shield } from 'lucide-react';
+import apiClient from '../../utils/apiClient';
 
 export function Sidebar() {
   const location = useLocation();
@@ -13,8 +14,15 @@ export function Sidebar() {
     { icon: User, label: 'Profile', path: '/profile' },
   ];
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    try {
+    await apiClient.post('/auth/logout');
+    localStorage.removeItem('token');
     navigate('/');
+  } catch (error) {
+    console.error('Logout error:', error);
+  }
+    
   };
 
   return (
