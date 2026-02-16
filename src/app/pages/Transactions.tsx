@@ -10,7 +10,7 @@ import { Plus, Edit2, Trash2, Filter } from 'lucide-react';
 import apiClient from '../../utils/apiClient';
 
 interface Transaction {
-  id: number;
+  id: string;
   description: string;
   category: string;
   amount: number;
@@ -22,6 +22,7 @@ export function Transactions() {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
 
   const [showModal, setShowModal] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [filterType, setFilterType] = useState<'all' | 'income' | 'expense'>('all');
   const [filterCategory, setFilterCategory] = useState('all');
   const [newTransaction, setNewTransaction] = useState({
@@ -66,6 +67,28 @@ export function Transactions() {
     }
   }
 
+  async function updateTransaction(id: string, description: string, category: string, amount: string | number, type?: 'income' | 'expense', date?: string) {
+    try {
+      const response = await apiClient.put(`/transactions/${id}`, {
+        description,
+        category,
+        amount: parseFloat(amount as string),
+      });
+      return response.data.data;
+    } catch (error) {
+      console.error('Transaction update failed:', error);
+    }
+  }
+
+  async function deleteTransaction(id: string) {
+    try {
+      const response = await apiClient.delete(`/transactions/${id}`);
+      return response.data.success;
+    } catch (error) {
+      console.error('Transaction deletion failed:', error);
+    }
+  }
+
 
   // fetch transactions from API on mount (optional, can be removed if not needed)
   const fetchTransactions = async () => {
@@ -96,38 +119,101 @@ export function Transactions() {
 
     if (!newTransaction.description || !newTransaction.category || !newTransaction.amount) return;
 
-    const addedTransaction = await addTransaction(
-      newTransaction.description,
-      newTransaction.category,
-      newTransaction.amount,
-      newTransaction.type,
-      newTransaction.date
-    );
+    if (editingId) {
+      // Update existing transaction
+      const updatedTransaction = await updateTransaction(
+        editingId,
+        newTransaction.description,
+        newTransaction.category,
+        newTransaction.amount,
+        newTransaction.type,
+        newTransaction.date
+      );
 
-    if (addedTransaction) {
-      // normalize category to string
-      const normalized = {
-        ...addedTransaction,
-        category: addedTransaction.category.name // <- extract string
-      };
+      if (updatedTransaction) {
+        const normalized = {
+          id: updatedTransaction._id,
+          description: updatedTransaction.description,
+          category: updatedTransaction.category.name,
+          amount: updatedTransaction.amount,
+          type: updatedTransaction.type,
+          date: updatedTransaction.date,
+        };
 
-      setTransactions([normalized, ...transactions]); // add to state
-      setShowModal(false);
-      setNewTransaction({
-        description: '',
-        category: '',
-        amount: '',
-        type: 'expense',
-        date: new Date().toISOString().split('T')[0]
-      });
+        setTransactions(transactions.map(t => t.id === editingId ? normalized : t));
+        setEditingId(null);
+        setShowModal(false);
+        setNewTransaction({
+          description: '',
+          category: '',
+          amount: '',
+          type: 'expense',
+          date: new Date().toISOString().split('T')[0]
+        });
+      }
+    } else {
+      // Add new transaction
+      const addedTransaction = await addTransaction(
+        newTransaction.description,
+        newTransaction.category,
+        newTransaction.amount,
+        newTransaction.type,
+        newTransaction.date
+      );
+
+      if (addedTransaction) {
+        // normalize category to string
+        const normalized = {
+          id: addedTransaction._id,
+          description: addedTransaction.description,
+          category: addedTransaction.category.name,
+          amount: addedTransaction.amount,
+          type: addedTransaction.type,
+          date: addedTransaction.date,
+        };
+
+        setTransactions([normalized, ...transactions]); // add to state
+        setShowModal(false);
+        setNewTransaction({
+          description: '',
+          category: '',
+          amount: '',
+          type: 'expense',
+          date: new Date().toISOString().split('T')[0]
+        });
+      }
     }
   };
 
+  const handleEditTransaction = (transaction: Transaction) => {
+    setEditingId(transaction.id);
+    setNewTransaction({
+      description: transaction.description,
+      category: transaction.category,
+      amount: transaction.amount.toString(),
+      type: transaction.type,
+      date: transaction.date,
+    });
+    setShowModal(true);
+  };
 
+  const handleDeleteTransaction = async (id: string) => {
+    const success = await deleteTransaction(id);
+    if (success) {
+      setTransactions(transactions.filter(t => t.id !== id));
+    }
+  };
 
-
-  const handleDeleteTransaction = (id: number) => {
-    setTransactions(transactions.filter(t => t.id !== id));
+  const handleCloseModal = () => {
+    setShowModal(false);
+    setEditingId(null);
+    setNewTransaction({
+      description: '',
+      category: '',
+      amount: '',
+      type: 'expense',
+      date: new Date().toISOString().split('T')[0]
+    });
   };
 
 
@@ -240,7 +326,10 @@ export function Transactions() {
                       </td>
                       <td className="py-4 px-4">
                         <div className="flex items-center justify-end gap-2">
-                          <button className="p-2 hover:bg-muted rounded-lg transition-colors">
+                          <button 
+                            onClick={() => handleEditTransaction(transaction)}
+                            className="p-2 hover:bg-muted rounded-lg transition-colors"
+                          >
                             <Edit2 className="w-4 h-4 text-primary" />
                           </button>
                           <button
@@ -264,7 +353,9 @@ export function Transactions() {
       {showModal && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
           <Card className="w-full max-w-md">
-            <h2 className="text-2xl font-bold mb-6">Add Transaction</h2>
+            <h2 className="text-2xl font-bold mb-6">
+              {editingId ? 'Edit Transaction' : 'Add Transaction'}
+            </h2>
 
             <form onSubmit={handleAddTransaction} className="space-y-6">
               <div className="space-y-2">
@@ -332,12 +423,12 @@ export function Transactions() {
 
               <div className="flex gap-3">
                 <Button type="submit" className="flex-1">
-                  Add Transaction
+                  {editingId ? 'Update Transaction' : 'Add Transaction'}
                 </Button>
                 <Button
                   type="button"
                   variant="secondary"
-                  onClick={() => setShowModal(false)}
+                  onClick={handleCloseModal}
                   className="flex-1"
                 >
                   Cancel
