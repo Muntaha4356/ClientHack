@@ -8,6 +8,7 @@ import { AIChat } from '../components/AIChat';
 import { DollarSign, TrendingUp, TrendingDown, AlertTriangle } from 'lucide-react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
 import apiClient from '../../utils/apiClient';
+import { useNavigate } from 'react-router';
 
 
 
@@ -16,7 +17,8 @@ import apiClient from '../../utils/apiClient';
 
 
 export function Dashboard() {
-
+   
+  const navigate=useNavigate()
   //User Info State
   const [userInfo, setUserInfo] = useState({
     total_income: 0,
@@ -62,7 +64,7 @@ export function Dashboard() {
     try {
       const response = await apiClient.get('/expenses/categorical');
       const data = response.data.data; 
-      const updatedData = data.map((item) => ({ ...item, color: categoryColors[item.category_name] || categoryColors["Other"], }));
+      const updatedData = data.map((item:any) => ({ ...item, color: categoryColors[item.category_name] || categoryColors["Other"], }));
       return updatedData;
     } catch (error) {
       console.error('Failed to fetch categorical expenses:', error);
@@ -73,7 +75,7 @@ export function Dashboard() {
 
   //get Recent Transactions for Recent Transactions List (not implemented yet)
   const [recentTransactions, setRecentTransactions] = useState<
-    { name: string; category: string; amount: number; date: string }[]
+    { name: string; category: string; amount: number; date: string; type: 'income' | 'expense' }[]
   >([]);
 
   //Get Recent Transactions
@@ -97,7 +99,9 @@ export function Dashboard() {
           total_income: userData.total_income ?? 0,
           total_expense: userData.total_expense ?? 0,
           remaining_balance: userData.remaining_balance ?? 0,
-          financial_health: userData.financial_health ?? 0,
+          financial_health: userData.financial_health
+        ? Number(userData.financial_health.toFixed(2))
+        : 0,
         });
       }
 
@@ -108,7 +112,15 @@ export function Dashboard() {
 
       const transactionsData = await getRecentTransactions(10);
       if (transactionsData && transactionsData.length > 0) {
-        setRecentTransactions(transactionsData);
+        // Map API response to match state interface
+        const mappedTransactions = transactionsData.map((trans: any) => ({
+          name: trans.transaction_description,
+          category: trans.category,
+          amount: trans.amount,
+          date: trans.date,
+          type: trans.type,
+        }));
+        setRecentTransactions(mappedTransactions);
       }
     }
 
@@ -288,7 +300,9 @@ export function Dashboard() {
           <Card>
             <div className="flex items-center justify-between mb-6">
               <h3 className="text-xl font-bold">Recent Transactions</h3>
-              <button className="text-sm text-primary hover:underline">View All</button>
+              <button className="text-sm cursor-pointer text-primary hover:underline" onClick={()=>{
+                navigate("/transactions")
+              }}>View All</button>
             </div>
 
             <div className="space-y-3">
@@ -299,13 +313,14 @@ export function Dashboard() {
                 >
                   <div className="flex items-center gap-4">
                     <div
-                      className={`w-10 h-10 rounded-xl flex items-center justify-center ${transaction.amount > 0 ? 'bg-green-500/10' : 'bg-muted'
-                        }`}
+                      className={`w-10 h-10 rounded-xl flex items-center justify-center ${
+                        transaction.type === 'income' ? 'bg-green-500/10' : 'bg-red-500/10'
+                      }`}
                     >
-                      {transaction.amount > 0 ? (
+                      {transaction.type === 'income' ? (
                         <TrendingUp className="w-5 h-5 text-green-400" />
                       ) : (
-                        <TrendingDown className="w-5 h-5" />
+                        <TrendingDown className="w-5 h-5 text-red-400" />
                       )}
                     </div>
                     <div>
@@ -314,8 +329,8 @@ export function Dashboard() {
                     </div>
                   </div>
                   <div className="text-right">
-                    <p className={`font-bold ${transaction.amount > 0 ? 'text-green-400' : ''}`}>
-                      {transaction.amount > 0 ? '+' : ''}${Math.abs(transaction.amount).toFixed(2)}
+                    <p className={`font-bold ${transaction.type === 'income' ? 'text-green-400' : 'text-red-400'}`}>
+                      {transaction.type === 'income' ? '+' : '-'}${Math.abs(transaction.amount).toFixed(2)}
                     </p>
                     <p className="text-xs text-muted-foreground">{transaction.date}</p>
                   </div>

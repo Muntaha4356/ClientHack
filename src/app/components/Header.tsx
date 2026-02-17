@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Bell } from 'lucide-react';
 import { NotificationPanel } from './NotificationPanel';
+import { useNotifications } from '../context/NotificationContext';
 import apiClient from '../../utils/apiClient';
 
 interface HeaderProps {
@@ -9,7 +10,7 @@ interface HeaderProps {
 
 export function Header({ userName = 'Student' }: HeaderProps) {
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
-  const unreadCount = 2; // You can make this dynamic later
+  const { unreadCount } = useNotifications();
   const [loading, setLoading] = useState(false);
   const [profile, setProfile] = useState({
     fullName: '',
@@ -53,7 +54,7 @@ export function Header({ userName = 'Student' }: HeaderProps) {
           onClick={() => setIsNotificationOpen(true)}
           className="relative p-3 hover:bg-muted/50 rounded-xl transition-all duration-200"
         >
-          <Bell className="w-6 h-6" />
+          <Bell className="w-6 h-6 cursor-pointer" />
           {unreadCount > 0 && (
             <span className="absolute top-1.5 right-1.5 w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center font-bold">
               {unreadCount}

@@ -1,6 +1,8 @@
 import React from 'react';
 import { createBrowserRouter, RouterProvider } from 'react-router';
 import { NotificationProvider } from './context/NotificationContext';
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 import { Landing } from './pages/Landing';
 import { Signup } from './pages/Signup';
@@ -76,6 +78,17 @@ const router = createBrowserRouter([
 export default function App() {
   return (
     <NotificationProvider>
+      <ToastContainer
+        position="top-right"
+        autoClose={3000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+      />
       <div className="dark">
         <RouterProvider router={router} />
       </div>

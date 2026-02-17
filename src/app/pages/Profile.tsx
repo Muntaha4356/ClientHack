@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Sidebar } from '../components/Sidebar';
 import { Header } from '../components/Header';
 import { Card } from '../components/Card';
@@ -6,10 +7,13 @@ import { Button } from '../components/Button';
 import { Input } from '../components/Input';
 import { AIChat } from '../components/AIChat';
 import { User, Mail, DollarSign, Lock } from 'lucide-react';
+import { toast } from 'react-toastify';
 import apiClient from '../../utils/apiClient';
 
 
 export function Profile() {
+  const navigate = useNavigate();
+  
   const [profile, setProfile] = useState({
     fullName: '',
     email: '',
@@ -22,7 +26,8 @@ export function Profile() {
     confirm: ''
   });
 
-  const [loading, setLoading] = useState(false);  
+  const [loading, setLoading] = useState(false);
+  const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);  
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -106,6 +111,35 @@ export function Profile() {
       alert("Password change failed");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleDeleteAccount = async () => {
+    try {
+      setLoading(true);
+
+      await apiClient.delete("/user/account");
+
+      toast.success('Account deleted successfully', {
+        autoClose: 2000,
+      });
+
+      // Clear token from localStorage
+      localStorage.removeItem('token');
+      
+      // Redirect to login page after a short delay
+      setTimeout(() => {
+        navigate('/login');
+      }, 2000);
+
+    } catch (error: unknown) {
+      console.error("Account deletion failed:", error);
+      toast.error('Failed to delete account. Please try again.', {
+        autoClose: 3000,
+      });
+    } finally {
+      setLoading(false);
+      setShowDeleteConfirmation(false);
     }
   };
 
@@ -242,10 +276,50 @@ export function Profile() {
             <p className="text-sm text-muted-foreground mb-6">
               Once you delete your account, there is no going back. Please be certain.
             </p>
-            <Button variant="secondary" className="bg-red-500/10 text-red-400 hover:bg-red-500/20 border-red-500/20">
+            <Button 
+              onClick={() => setShowDeleteConfirmation(true)}
+              className="bg-red-500/10 text-red-400 hover:bg-red-500/20 border-red-500/20"
+            >
               Delete Account
             </Button>
           </Card>
+
+          {/* Delete Confirmation Modal */}
+          {showDeleteConfirmation && (
+            <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+              <Card className="max-w-md p-6 space-y-6">
+                <div>
+                  <h2 className="text-2xl font-bold text-red-400 mb-2">Delete Account?</h2>
+                  <p className="text-sm text-muted-foreground">
+                    This action cannot be undone. All your data including transactions, chat history, and notifications will be permanently deleted.
+                  </p>
+                </div>
+
+                <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-4">
+                  <p className="text-sm text-red-400 font-semibold">
+                    ⚠️ Are you absolutely sure?
+                  </p>
+                </div>
+
+                <div className="flex gap-3">
+                  <Button 
+                    onClick={() => setShowDeleteConfirmation(false)}
+                    className="flex-1 bg-muted text-foreground hover:bg-muted/80"
+                    disabled={loading}
+                  >
+                    Cancel
+                  </Button>
+                  <Button 
+                    onClick={handleDeleteAccount}
+                    className="flex-1 bg-red-500 text-white hover:bg-red-600"
+                    disabled={loading}
+                  >
+                    {loading ? 'Deleting...' : 'Delete Permanently'}
+                  </Button>
+                </div>
+              </Card>
+            </div>
+          )}
         </main>
       </div>
 

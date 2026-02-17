@@ -88,7 +88,7 @@ export function Simulator() {
                   onChange={(e) => setInterestRate(e.target.value)}
                 />
 
-                <Button onClick={handleCalculate} className="w-full">
+                <Button onClick={handleCalculate} className="w-full cursor-pointer">
                   Calculate
                 </Button>
               </div>

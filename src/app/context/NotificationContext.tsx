@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
+import React, { createContext, useContext, useState, useCallback, useEffect, useRef } from 'react';
 import apiClient from '../../utils/apiClient';
 
 interface Notification {
@@ -26,6 +26,7 @@ const NotificationContext = createContext<NotificationContextType | undefined>(u
 export function NotificationProvider({ children }: { children: React.ReactNode }) {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(false);
+  const eventSourceRef = useRef<EventSource | null>(null);
 
   // Fetch notifications from API
   const fetchNotifications = useCallback(async () => {
@@ -115,6 +116,56 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
   useEffect(() => {
     fetchNotifications();
   }, [fetchNotifications]);
+
+  // Connect to SSE for real-time notifications
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      return;
+    }
+
+    try {
+      const API_BASE_URL = 'http://localhost:5000/api';
+      const eventSource = new EventSource(
+        `${API_BASE_URL}/notifications/subscribe?token=${encodeURIComponent(token)}`
+      );
+
+      // Handle incoming notifications
+      eventSource.addEventListener('message', (event) => {
+        if (event.data === ':connected' || event.data === ':heartbeat') {
+          // Ignore connection confirmation and heartbeat messages
+          return;
+        }
+
+        try {
+          const notification = JSON.parse(event.data) as Notification;
+          console.log('Received new notification via SSE:', notification);
+
+          // Add new notification to the beginning of the list
+          setNotifications((prevNotifications) => [
+            notification,
+            ...prevNotifications,
+          ]);
+        } catch (error) {
+          console.error('Failed to parse SSE notification:', error);
+        }
+      });
+
+      // Handle errors
+      eventSource.addEventListener('error', () => {
+        console.error('SSE connection error');
+        eventSource.close();
+      });
+
+      eventSourceRef.current = eventSource;
+
+      return () => {
+        eventSource.close();
+      };
+    } catch (error) {
+      console.error('Failed to connect to SSE:', error);
+    }
+  }, []);
 
   const value: NotificationContextType = {
     notifications,

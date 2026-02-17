@@ -16,7 +16,7 @@ export function AIChat() {
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
-      text: "Hi! I'm FinGuard AI, your intelligent financial advisor. I have access to your financial data and can help you with budgeting, savings goals, expense analysis, and personalized financial advice. What would you like to know about your finances?",
+      text: "Hi! I'm CashMate AI, your intelligent financial advisor. I have access to your financial data and can help you with budgeting, savings goals, expense analysis, and personalized financial advice. What would you like to know about your finances?",
       sender: 'ai',
       timestamp: new Date()
     }
@@ -159,7 +159,7 @@ export function AIChat() {
         setMessages([
           {
             id: '1',
-            text: "Hi! I'm FinGuard AI, your intelligent financial advisor. I have access to your financial data and can help you with budgeting, savings goals, expense analysis, and personalized financial advice. What would you like to know about your finances?",
+            text: "Hi! I'm CashMate AI, your intelligent financial advisor. I have access to your financial data and can help you with budgeting, savings goals, expense analysis, and personalized financial advice. What would you like to know about your finances?",
             sender: 'ai',
             timestamp: new Date()
           }
@@ -183,7 +183,7 @@ export function AIChat() {
             onClick={() => setIsOpen(true)}
             className="fixed bottom-8 right-8 w-16 h-16 bg-primary rounded-full shadow-2xl shadow-primary/30 flex items-center justify-center hover:scale-110 transition-transform z-50"
           >
-            <MessageCircle className="w-7 h-7 text-white" />
+            <MessageCircle className="w-7 h-7 cursor-pointer text-white" />
             <span className="absolute top-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-background"></span>
           </motion.button>
         )}
@@ -214,7 +214,7 @@ export function AIChat() {
                   <Sparkles className="w-5 h-5 text-primary" />
                 </div>
                 <div>
-                  <h3 className="font-bold">FinGuard AI</h3>
+                  <h3 className="font-bold">CashMate AI</h3>
                   <p className="text-xs text-green-400 flex items-center gap-1">
                     <span className="w-2 h-2 bg-green-400 rounded-full"></span>
                     Online

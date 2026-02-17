@@ -7,6 +7,7 @@ import { Button } from '../components/Button';
 import { Input } from '../components/Input';
 import { AIChat } from '../components/AIChat';
 import { Plus, Edit2, Trash2, Filter } from 'lucide-react';
+import { toast } from 'react-toastify';
 import apiClient from '../../utils/apiClient';
 
 interface Transaction {
@@ -61,9 +62,11 @@ export function Transactions() {
         type,
         date: date || new Date().toISOString().split('T')[0],
       });
-      return response.data.data; // assuming API returns { data: { ...transaction } }
-    } catch (error) {
+      return { success: true, data: response.data.data }; // assuming API returns { data: { ...transaction } }
+    } catch (error: any) {
       console.error('Transaction creation failed:', error);
+      const errorMessage = error.response?.data?.message || 'Transaction creation failed';
+      return { success: false, error: errorMessage };
     }
   }
 
@@ -73,6 +76,7 @@ export function Transactions() {
         description,
         category,
         amount: parseFloat(amount as string),
+        date: date || new Date().toISOString().split('T')[0],
       });
       return response.data.data;
     } catch (error) {
@@ -153,7 +157,7 @@ export function Transactions() {
       }
     } else {
       // Add new transaction
-      const addedTransaction = await addTransaction(
+      const result = await addTransaction(
         newTransaction.description,
         newTransaction.category,
         newTransaction.amount,
@@ -161,15 +165,15 @@ export function Transactions() {
         newTransaction.date
       );
 
-      if (addedTransaction) {
+      if (result.success && result.data) {
         // normalize category to string
         const normalized = {
-          id: addedTransaction._id,
-          description: addedTransaction.description,
-          category: addedTransaction.category.name,
-          amount: addedTransaction.amount,
-          type: addedTransaction.type,
-          date: addedTransaction.date,
+          id: result.data._id,
+          description: result.data.description,
+          category: result.data.category.name,
+          amount: result.data.amount,
+          type: result.data.type,
+          date: result.data.date,
         };
 
         setTransactions([normalized, ...transactions]); // add to state
@@ -180,6 +184,11 @@ export function Transactions() {
           amount: '',
           type: 'expense',
           date: new Date().toISOString().split('T')[0]
+        });
+      } else if (!result.success) {
+        // Show error toast notification without closing the modal
+        toast.error('Insufficient balance to complete this transaction', {
+          autoClose: 3000,
         });
       }
     }
@@ -192,7 +201,7 @@ export function Transactions() {
       category: transaction.category,
       amount: transaction.amount.toString(),
       type: transaction.type,
-      date: transaction.date,
+      date: new Date().toISOString().split('T')[0], // Auto-fill with today's date
     });
     setShowModal(true);
   };
@@ -260,21 +269,21 @@ export function Transactions() {
               <div className="flex gap-2">
                 <button
                   onClick={() => setFilterType('all')}
-                  className={`px-4 py-2 rounded-xl text-sm transition-all ${filterType === 'all' ? 'bg-primary text-white' : 'bg-muted/50 hover:bg-muted'
+                  className={`px-4 py-2 cursor-pointer rounded-xl text-sm transition-all ${filterType === 'all' ? 'bg-primary text-white' : 'bg-muted/50 hover:bg-muted'
                     }`}
                 >
                   All
                 </button>
                 <button
                   onClick={() => setFilterType('income')}
-                  className={`px-4 py-2 rounded-xl text-sm transition-all ${filterType === 'income' ? 'bg-green-500 text-white' : 'bg-muted/50 hover:bg-muted'
+                  className={`px-4 py-2 cursor-pointer rounded-xl text-sm transition-all ${filterType === 'income' ? 'bg-green-500 text-white' : 'bg-muted/50 hover:bg-muted'
                     }`}
                 >
                   Income
                 </button>
                 <button
                   onClick={() => setFilterType('expense')}
-                  className={`px-4 py-2 rounded-xl text-sm transition-all ${filterType === 'expense' ? 'bg-red-500 text-white' : 'bg-muted/50 hover:bg-muted'
+                  className={`px-4 py-2 cursor-pointer rounded-xl text-sm transition-all ${filterType === 'expense' ? 'bg-red-500 text-white' : 'bg-muted/50 hover:bg-muted'
                     }`}
                 >
                   Expense
@@ -284,7 +293,7 @@ export function Transactions() {
               <select
                 value={filterCategory}
                 onChange={(e) => setFilterCategory(e.target.value)}
-                className="px-4 py-2 rounded-xl bg-muted/50 border border-border text-sm focus:outline-none focus:ring-2 focus:ring-primary/50"
+                className="px-4 py-2 cursor-pointer rounded-xl bg-muted/50 border border-border text-sm focus:outline-none focus:ring-2 focus:ring-primary/50"
               >
                 <option value="all">All Categories</option>
                 {categories.map(cat => (
@@ -330,13 +339,13 @@ export function Transactions() {
                             onClick={() => handleEditTransaction(transaction)}
                             className="p-2 hover:bg-muted rounded-lg transition-colors"
                           >
-                            <Edit2 className="w-4 h-4 text-primary" />
+                            <Edit2 className="w-4 h-4 cursor-pointer text-primary" />
                           </button>
                           <button
                             onClick={() => handleDeleteTransaction(transaction.id)}
                             className="p-2 hover:bg-muted rounded-lg transition-colors"
                           >
-                            <Trash2 className="w-4 h-4 text-red-400" />
+                            <Trash2 className="w-4 h-4 cursor-pointer text-red-400" />
                           </button>
                         </div>
                       </td>
@@ -360,11 +369,11 @@ export function Transactions() {
             <form onSubmit={handleAddTransaction} className="space-y-6">
               <div className="space-y-2">
                 <label className="text-sm">Type</label>
-                <div className="flex gap-2">
+                <div className="flex gap-2 mt-2">
                   <button
                     type="button"
                     onClick={() => setNewTransaction({ ...newTransaction, type: 'expense' })}
-                    className={`flex-1 px-4 py-2 rounded-xl transition-all ${newTransaction.type === 'expense' ? 'bg-red-500 text-white' : 'bg-muted/50'
+                    className={`flex-1 cursor-pointer px-4 py-2 rounded-xl transition-all ${newTransaction.type === 'expense' ? 'bg-red-500 text-white' : 'bg-muted/50'
                       }`}
                   >
                     Expense
@@ -372,7 +381,7 @@ export function Transactions() {
                   <button
                     type="button"
                     onClick={() => setNewTransaction({ ...newTransaction, type: 'income' })}
-                    className={`flex-1 px-4 py-2 rounded-xl transition-all ${newTransaction.type === 'income' ? 'bg-green-500 text-white' : 'bg-muted/50'
+                    className={`flex-1 cursor-pointer px-4 py-2 rounded-xl transition-all ${newTransaction.type === 'income' ? 'bg-green-500 text-white' : 'bg-muted/50'
                       }`}
                   >
                     Income
@@ -393,7 +402,7 @@ export function Transactions() {
                 <select
                   value={newTransaction.category}
                   onChange={(e) => setNewTransaction({ ...newTransaction, category: e.target.value })}
-                  className="w-full px-4 py-3 rounded-xl bg-input-background border border-border text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
+                  className="w-full cursor-pointer px-4 py-3 rounded-xl bg-input-background border border-border text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
                   required
                 >
                   <option value="">Select category</option>
@@ -422,14 +431,14 @@ export function Transactions() {
               />
 
               <div className="flex gap-3">
-                <Button type="submit" className="flex-1">
+                <Button type="submit" className="flex-1 cursor-pointer">
                   {editingId ? 'Update Transaction' : 'Add Transaction'}
                 </Button>
                 <Button
                   type="button"
                   variant="secondary"
                   onClick={handleCloseModal}
-                  className="flex-1"
+                  className="flex-1 cursor-pointer"
                 >
                   Cancel
                 </Button>

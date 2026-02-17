@@ -4,7 +4,7 @@
   --font-size: 16px;
   --background: #0F172A;
   --foreground: #F1F5F9;
-  --card: rgba(30, 41, 59, 0.5);
+  --card: rgba(59, 30, 39, 1);
   --card-foreground: #F1F5F9;
   --popover: #1E293B;
   --popover-foreground: #F1F5F9;
@@ -44,7 +44,7 @@
 .dark {
   --background: #0F172A;
   --foreground: #F1F5F9;
-  --card: rgba(30, 41, 59, 0.5);
+  --card: rgba(30, 41, 59, 1);
   --card-foreground: #F1F5F9;
   --popover: #1E293B;
   --popover-foreground: #F1F5F9;
