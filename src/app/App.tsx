@@ -12,6 +12,7 @@ import { Transactions } from './pages/Transactions';
 import { Simulator } from './pages/Simulator';
 import { Profile } from './pages/Profile';
 import { Savings } from './pages/Savings';
+import { Reminders } from './pages/Reminders';
 import { ProtectedRoute } from './components/ProtectedRoutes/ProtectedRoute';
 import { PublicRoute } from './components/ProtectedRoutes/PublicRoute';
 
@@ -79,6 +80,14 @@ const router = createBrowserRouter([
     element: (
       <ProtectedRoute>
         <Savings />
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: '/reminders',
+    element: (
+      <ProtectedRoute>
+        <Reminders />
       </ProtectedRoute>
     ),
   },

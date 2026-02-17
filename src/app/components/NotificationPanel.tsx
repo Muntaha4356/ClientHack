@@ -5,7 +5,7 @@ import { useNotifications } from '../context/NotificationContext';
 
 interface Notification {
   id: string;
-  type: 'alert' | 'success' | 'info' | 'warning' | 'failure';
+  type: 'alert' | 'success' | 'info' | 'warning' | 'failure' | 'reminder';
   title: string;
   message: string;
   timestamp: string;
@@ -33,6 +33,8 @@ export function NotificationPanel({ isOpen, onClose }: NotificationPanelProps) {
         return <X className="w-4 h-4 text-orange-400" />;
       case 'info':
         return <Info className="w-4 h-4 text-blue-400" />;
+      case 'reminder':
+        return <Info className="w-4 h-4 text-purple-400" />;
     }
   };
 
@@ -48,6 +50,8 @@ export function NotificationPanel({ isOpen, onClose }: NotificationPanelProps) {
         return 'bg-orange-500/10';
       case 'info':
         return 'bg-blue-500/10';
+      case 'reminder':
+        return 'bg-purple-500/10';
     }
   };
 

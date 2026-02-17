@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link, useLocation, useNavigate } from 'react-router';
-import { LayoutDashboard, ArrowLeftRight, TrendingUp, User, LogOut, Shield, PiggyBank } from 'lucide-react';
+import { LayoutDashboard, ArrowLeftRight, TrendingUp, User, LogOut, Shield, PiggyBank, Clock } from 'lucide-react';
 import apiClient from '../../utils/apiClient';
 import { useNotifications } from '../context/NotificationContext';
 
@@ -14,6 +14,7 @@ export function Sidebar() {
     { icon: ArrowLeftRight, label: 'Transactions', path: '/transactions' },
     { icon: TrendingUp, label: 'Simulator', path: '/simulator' },
     { icon: PiggyBank, label: 'Savings', path: '/savings' },
+    { icon: Clock, label: 'Reminders', path: '/reminders' },
     { icon: User, label: 'Profile', path: '/profile' },
   ];
 
