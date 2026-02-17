@@ -1,8 +1,9 @@
 import React from 'react';
 import { useNavigate } from 'react-router';
-import { Shield, TrendingUp, Bell, Sparkles, DollarSign, PieChart, AlertTriangle, Target } from 'lucide-react';
+import { Shield, TrendingUp, Bell, Sparkles, DollarSign, PieChart, AlertTriangle, Target, LayoutDashboard, Wallet } from 'lucide-react';
 import { Button } from '../components/Button';
 import { Card } from '../components/Card';
+import { motion } from 'motion/react';
 
 export function Landing() {
   const navigate = useNavigate();
@@ -16,7 +17,7 @@ export function Landing() {
             <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center">
               <Shield className="w-6 h-6 text-white" />
             </div>
-            <span className="text-xl font-bold">FinGuard AI</span>
+            <span className="text-xl font-bold">CashMate</span>
           </div>
           <div className="flex items-center gap-4">
             <Button variant="ghost" onClick={() => navigate('/login')}>
@@ -50,67 +51,212 @@ export function Landing() {
             <Button onClick={() => navigate('/signup')} className="text-lg px-8 py-4">
               Get Started Free
             </Button>
-            <Button variant="secondary" onClick={() => navigate('/dashboard')} className="text-lg px-8 py-4">
-              See Demo
-            </Button>
           </div>
 
-          <div className="flex items-center gap-8 pt-4">
-            <div>
-              <p className="text-3xl font-bold text-primary">10K+</p>
-              <p className="text-sm text-muted-foreground">Students Protected</p>
-            </div>
-            <div>
-              <p className="text-3xl font-bold text-primary">$2M+</p>
-              <p className="text-sm text-muted-foreground">Fraud Prevented</p>
-            </div>
-            <div>
-              <p className="text-3xl font-bold text-primary">98%</p>
-              <p className="text-sm text-muted-foreground">Satisfaction Rate</p>
-            </div>
-          </div>
+          
         </div>
 
-        {/* Dashboard Preview */}
-        <div className="relative">
-          <div className="absolute inset-0 bg-primary/20 blur-3xl"></div>
-          <Card className="relative">
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <h3 className="font-semibold">Financial Overview</h3>
-                <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-              </div>
-              
-              <div className="grid grid-cols-2 gap-4">
-                <div className="bg-muted/50 rounded-xl p-4">
-                  <p className="text-sm text-muted-foreground">Balance</p>
-                  <p className="text-2xl font-bold text-primary">$2,450</p>
-                </div>
-                <div className="bg-muted/50 rounded-xl p-4">
-                  <p className="text-sm text-muted-foreground">Saved</p>
-                  <p className="text-2xl font-bold text-green-400">$890</p>
-                </div>
-              </div>
+        {/* Animated Finance Illustration */}
+        <div className="relative h-[600px] flex items-center justify-center">
+          {/* Glowing Background */}
+          <div className="absolute inset-0 bg-gradient-to-br from-primary/20 via-purple-500/20 to-green-500/20 blur-3xl animate-pulse"></div>
+          
+          {/* Central Shield with Pulse */}
+          <motion.div
+            animate={{ 
+              scale: [1, 1.05, 1],
+              rotate: [0, 5, -5, 0]
+            }}
+            transition={{ 
+              duration: 4,
+              repeat: Infinity,
+              ease: "easeInOut"
+            }}
+            className="absolute w-32 h-32 bg-gradient-to-br from-primary to-blue-600 rounded-3xl flex items-center justify-center shadow-2xl shadow-primary/50 z-10"
+          >
+            <Shield className="w-16 h-16 text-white" />
+            <motion.div
+              animate={{ scale: [1, 1.5, 1], opacity: [0.5, 0, 0.5] }}
+              transition={{ duration: 2, repeat: Infinity }}
+              className="absolute inset-0 bg-primary rounded-3xl"
+            ></motion.div>
+          </motion.div>
 
-              <div className="h-32 bg-muted/30 rounded-xl flex items-end gap-2 p-4">
-                {[40, 65, 45, 80, 55, 70, 60].map((height, i) => (
-                  <div
-                    key={i}
-                    className="flex-1 bg-primary rounded-t transition-all duration-300"
-                    style={{ height: `${height}%` }}
-                  ></div>
+          {/* Floating Coins - Top Left */}
+          <motion.div
+            animate={{ 
+              y: [-20, 20, -20],
+              rotate: [0, 360]
+            }}
+            transition={{ 
+              duration: 6,
+              repeat: Infinity,
+              ease: "easeInOut"
+            }}
+            className="absolute top-20 left-20 w-20 h-20 bg-gradient-to-br from-yellow-400 to-yellow-600 rounded-full shadow-xl flex items-center justify-center"
+          >
+            <DollarSign className="w-10 h-10 text-yellow-900" />
+          </motion.div>
+
+          {/* Floating Coins - Top Right */}
+          <motion.div
+            animate={{ 
+              y: [20, -20, 20],
+              rotate: [360, 0]
+            }}
+            transition={{ 
+              duration: 5,
+              repeat: Infinity,
+              ease: "easeInOut",
+              delay: 0.5
+            }}
+            className="absolute top-32 right-20 w-16 h-16 bg-gradient-to-br from-yellow-300 to-yellow-500 rounded-full shadow-xl flex items-center justify-center"
+          >
+            <DollarSign className="w-8 h-8 text-yellow-900" />
+          </motion.div>
+
+          {/* Credit Card - Left Side */}
+          <motion.div
+            animate={{ 
+              x: [-10, 10, -10],
+              rotate: [-5, 5, -5]
+            }}
+            transition={{ 
+              duration: 5,
+              repeat: Infinity,
+              ease: "easeInOut"
+            }}
+            className="absolute left-10 top-1/2 -translate-y-1/2 w-48 h-32 bg-gradient-to-br from-primary via-blue-600 to-purple-600 rounded-2xl shadow-2xl p-4 flex flex-col justify-between"
+          >
+            <div className="flex justify-between items-start">
+              <div className="w-10 h-8 bg-yellow-400 rounded opacity-80"></div>
+              <Sparkles className="w-6 h-6 text-white" />
+            </div>
+            <div>
+              <div className="flex gap-1 mb-2">
+                {[...Array(4)].map((_, i) => (
+                  <div key={i} className="w-2 h-2 bg-white/40 rounded-full"></div>
                 ))}
               </div>
-
-              <div className="bg-red-500/10 border border-red-500/20 rounded-xl p-4 flex items-start gap-3">
-                <AlertTriangle className="w-5 h-5 text-red-400 flex-shrink-0 mt-0.5" />
-                <div>
-                  <p className="text-sm font-semibold text-red-400">Suspicious Activity Detected</p>
-                  <p className="text-xs text-muted-foreground mt-1">Unusual transaction from unknown vendor</p>
-                </div>
-              </div>
+              <div className="text-white text-xs font-mono">**** 4532</div>
             </div>
-          </Card>
+            <motion.div
+              animate={{ opacity: [0.3, 0.8, 0.3] }}
+              transition={{ duration: 2, repeat: Infinity }}
+              className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent rounded-2xl"
+            ></motion.div>
+          </motion.div>
+
+          {/* Wallet - Right Side */}
+          <motion.div
+            animate={{ 
+              x: [10, -10, 10],
+              rotate: [5, -5, 5]
+            }}
+            transition={{ 
+              duration: 4,
+              repeat: Infinity,
+              ease: "easeInOut"
+            }}
+            className="absolute right-10 top-1/2 -translate-y-1/2 w-40 h-28 bg-gradient-to-br from-green-500 to-emerald-600 rounded-2xl shadow-2xl flex items-center justify-center"
+          >
+            <Wallet className="w-12 h-12 text-white" />
+            <motion.div
+              animate={{ scale: [1, 1.1, 1], opacity: [0.5, 0, 0.5] }}
+              transition={{ duration: 2, repeat: Infinity }}
+              className="absolute inset-0 bg-green-400 rounded-2xl"
+            ></motion.div>
+          </motion.div>
+
+          {/* Rising Chart Bars - Bottom Left */}
+          <motion.div
+            className="absolute bottom-20 left-24 flex gap-2"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+          >
+            {[40, 60, 80, 100].map((height, i) => (
+              <motion.div
+                key={i}
+                animate={{ 
+                  height: [`${height * 0.5}px`, `${height}px`, `${height * 0.5}px`]
+                }}
+                transition={{ 
+                  duration: 2,
+                  repeat: Infinity,
+                  delay: i * 0.2,
+                  ease: "easeInOut"
+                }}
+                className="w-8 bg-gradient-to-t from-primary to-blue-400 rounded-t-lg shadow-lg"
+                style={{ height: `${height}px` }}
+              ></motion.div>
+            ))}
+          </motion.div>
+
+          {/* Trending Up Arrow - Bottom Right */}
+          <motion.div
+            animate={{ 
+              y: [-5, 5, -5],
+              scale: [1, 1.1, 1]
+            }}
+            transition={{ 
+              duration: 3,
+              repeat: Infinity,
+              ease: "easeInOut"
+            }}
+            className="absolute bottom-24 right-24 w-16 h-16 bg-gradient-to-br from-green-400 to-emerald-500 rounded-full shadow-xl flex items-center justify-center"
+          >
+            <TrendingUp className="w-8 h-8 text-white" />
+          </motion.div>
+
+          {/* Floating Dollar Signs */}
+          {[...Array(3)].map((_, i) => (
+            <motion.div
+              key={i}
+              animate={{ 
+                y: [0, -100, 0],
+                opacity: [0, 1, 0],
+                rotate: [0, 180, 360]
+              }}
+              transition={{ 
+                duration: 4,
+                repeat: Infinity,
+                delay: i * 1.3,
+                ease: "easeInOut"
+              }}
+              className="absolute text-primary opacity-0"
+              style={{
+                top: `${50 + i * 10}%`,
+                left: `${40 + i * 15}%`
+              }}
+            >
+              <DollarSign className="w-8 h-8" />
+            </motion.div>
+          ))}
+
+          {/* Sparkle Effects */}
+          {[...Array(5)].map((_, i) => (
+            <motion.div
+              key={i}
+              animate={{ 
+                scale: [0, 1, 0],
+                opacity: [0, 1, 0],
+                rotate: [0, 180]
+              }}
+              transition={{ 
+                duration: 3,
+                repeat: Infinity,
+                delay: i * 0.6,
+                ease: "easeInOut"
+              }}
+              className="absolute text-yellow-400"
+              style={{
+                top: `${Math.random() * 80 + 10}%`,
+                left: `${Math.random() * 80 + 10}%`
+              }}
+            >
+              <Sparkles className="w-6 h-6" />
+            </motion.div>
+          ))}
         </div>
       </section>
 
@@ -227,12 +373,9 @@ export function Landing() {
       {/* Footer */}
       <footer className="border-t border-border/50 py-8">
         <div className="max-w-7xl mx-auto px-8 text-center text-sm text-muted-foreground">
-          <p>© 2026 FinGuard AI. Empowering students to make smarter financial decisions.</p>
+          <p>© 2026 CashMate. Empowering students to make smarter financial decisions.</p>
         </div>
       </footer>
     </div>
   );
 }
-
-// Missing import
-import { LayoutDashboard } from 'lucide-react';

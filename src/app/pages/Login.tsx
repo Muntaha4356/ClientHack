@@ -62,7 +62,7 @@ export function Login() {
           <div className="w-12 h-12 bg-primary rounded-xl flex items-center justify-center">
             <Shield className="w-7 h-7 text-white" />
           </div>
-          <span className="text-2xl font-bold">FinGuard AI</span>
+          <span className="text-2xl font-bold">CashMate AI</span>
         </div>
 
         <Card>
