@@ -11,6 +11,7 @@ import { Dashboard } from './pages/Dashboard';
 import { Transactions } from './pages/Transactions';
 import { Simulator } from './pages/Simulator';
 import { Profile } from './pages/Profile';
+import { Savings } from './pages/Savings';
 import { ProtectedRoute } from './components/ProtectedRoutes/ProtectedRoute';
 import { PublicRoute } from './components/ProtectedRoutes/PublicRoute';
 
@@ -70,6 +71,14 @@ const router = createBrowserRouter([
     element: (
       <ProtectedRoute>
         <Profile />
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: '/savings',
+    element: (
+      <ProtectedRoute>
+        <Savings />
       </ProtectedRoute>
     ),
   },

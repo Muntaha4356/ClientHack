@@ -5,7 +5,7 @@ import { Card } from '../components/Card';
 import { Badge } from '../components/Badge';
 import { ProgressRing } from '../components/ProgressRing';
 import { AIChat } from '../components/AIChat';
-import { DollarSign, TrendingUp, TrendingDown, AlertTriangle } from 'lucide-react';
+import { DollarSign, TrendingUp, TrendingDown, AlertTriangle, PiggyBank } from 'lucide-react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
 import apiClient from '../../utils/apiClient';
 import { useNavigate } from 'react-router';
@@ -23,6 +23,7 @@ export function Dashboard() {
   const [userInfo, setUserInfo] = useState({
     total_income: 0,
     total_expense: 0,
+    total_saved: 0,
     remaining_balance: 0,
     financial_health: 0,
   });
@@ -51,7 +52,9 @@ export function Dashboard() {
   async function getUserInfo() {
 
     try {
+      console.log("before API call")
       const response = await apiClient.get('/user/info');
+      console.log(response.data.data);
       return response.data.data; // Returns: total_income, total_expense, remaining_balance, financial_health
     } catch (error) {
       console.error('Failed to fetch user info:', error);
@@ -98,6 +101,7 @@ export function Dashboard() {
         setUserInfo({
           total_income: userData.total_income ?? 0,
           total_expense: userData.total_expense ?? 0,
+          total_saved: userData.total_saved ?? 0,
           remaining_balance: userData.remaining_balance ?? 0,
           financial_health: userData.financial_health
         ? Number(userData.financial_health.toFixed(2))
@@ -136,7 +140,7 @@ export function Dashboard() {
 
         <main className="p-8 space-y-8">
           {/* Stats Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
             <Card  >
               <div className="flex items-start justify-between">
                 <div>
@@ -170,8 +174,20 @@ export function Dashboard() {
             <Card>
               <div className="flex items-start justify-between">
                 <div>
+                  <p className="text-sm text-muted-foreground mb-1">Total Saved</p>
+                  <p className="text-3xl font-bold text-blue-400">${userInfo.total_saved.toFixed(2)}</p>
+                </div>
+                <div className="w-12 h-12 bg-blue-500/10 rounded-xl flex items-center justify-center">
+                  <PiggyBank className="w-6 h-6 text-blue-400" />
+                </div>
+              </div>
+            </Card>
+
+            <Card>
+              <div className="flex items-start justify-between">
+                <div>
                   <p className="text-sm text-muted-foreground mb-1">Remaining Balance</p>
-                  <p className="text-3xl font-bold text-primary">${userInfo.remaining_balance}</p>
+                  <p className="text-3xl font-bold text-primary">${userInfo.remaining_balance.toFixed(2)}</p>
                   {/* <p className="text-xs text-muted-foreground mt-2">62.5% of income</p> */}
                 </div>
                 <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center">
