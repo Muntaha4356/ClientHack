@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Sidebar } from '../components/Sidebar';
 import { Header } from '../components/Header';
@@ -6,7 +6,7 @@ import { Card } from '../components/Card';
 import { Button } from '../components/Button';
 import { Input } from '../components/Input';
 import { AIChat } from '../components/AIChat';
-import { User, Mail, DollarSign, Lock } from 'lucide-react';
+import { User, Mail, DollarSign, Lock, Edit2, Trash2 } from 'lucide-react';
 import { toast } from 'react-toastify';
 import apiClient from '../../utils/apiClient';
 
@@ -17,7 +17,8 @@ export function Profile() {
   const [profile, setProfile] = useState({
     fullName: '',
     email: '',
-    monthlyIncome: ''
+    monthlyIncome: '',
+    avatarUrl: ''
   });
   
   const [password, setPassword] = useState({
@@ -41,11 +42,12 @@ export function Profile() {
           fullName: data.fullName || "",
           email: data.email || "",
           monthlyIncome: data.monthlyIncome || "",
+          avatarUrl: data.avatarUrl || "",
         });
 
       } catch (error: unknown) {
         console.error("Failed to fetch profile:", error);
-        alert("Could not load profile");
+        toast.error("Could not load profile");
       } finally {
         setLoading(false);
       }
@@ -71,11 +73,58 @@ export function Profile() {
         ...response.data.data,
       }));
 
-      alert("Profile updated successfully!");
+      toast.success("Profile updated successfully!");
 
     } catch (error: unknown) {
       console.error("Profile update failed:", error);
-      alert("Profile update failed");
+      toast.error("Profile update failed");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Avatar upload / edit
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+
+  const handleFileClick = () => fileInputRef.current?.click();
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    try {
+      setLoading(true);
+      const form = new FormData();
+      form.append('file', file);
+
+      const res = await apiClient.post('/user/profile-photo', form, {
+  headers: {
+    'Content-Type': 'multipart/form-data',
+  },
+});
+
+      const newUrl = res.data.data.avatarUrl;
+      setProfile(prev => ({ ...prev, avatarUrl: newUrl }));
+
+      toast.success('Profile photo updated');
+    } catch (err) {
+      console.error('Upload failed', err);
+      toast.error('Failed to upload image');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDeleteAvatar = async () => {
+    if (!confirm('Remove profile photo?')) return;
+    try {
+      setLoading(true);
+      await apiClient.delete('/user/profile-photo');
+      setProfile(prev => ({ ...prev, avatarUrl: '' }));
+      toast.success('Profile photo removed');
+    } catch (err) {
+      console.error('Delete failed', err);
+      toast.error('Failed to delete photo');
     } finally {
       setLoading(false);
     }
@@ -85,7 +134,7 @@ export function Profile() {
     e.preventDefault();
 
     if (password.new !== password.confirm) {
-      alert("New passwords do not match!");
+      toast.error("New passwords do not match!");
       return;
     }
 
@@ -98,7 +147,7 @@ export function Profile() {
         confirm: password.confirm,
       });
 
-      alert(response.data.message || "Password changed!");
+      toast.success(response.data.message || "Password changed!");
 
       setPassword({
         current: "",
@@ -108,7 +157,7 @@ export function Profile() {
 
     } catch (error: unknown) {
       console.error("Password change failed:", error);
-      alert("Password change failed");
+      toast.error("Password change failed");
     } finally {
       setLoading(false);
     }
@@ -159,8 +208,29 @@ export function Profile() {
           <div className="grid lg:grid-cols-3 gap-6">
             {/* Profile Picture */}
             <Card className="text-center">
-              <div className="w-32 h-32 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                <User className="w-16 h-16 text-primary" />
+              <div className="w-32 h-32 relative mx-auto mb-4 group">
+                {profile.avatarUrl ? (
+                  <img src={profile.avatarUrl} alt="avatar" className="w-32 h-32 rounded-full object-cover" />
+                ) : (
+                  <div className="w-32 h-32 bg-primary/10 rounded-full flex items-center justify-center">
+                    <User className="w-16 h-16 text-primary" />
+                  </div>
+                )}
+
+                <div className="absolute inset-0 flex items-end justify-center pb-2 opacity-0 group-hover:opacity-100 transition">
+                  <div className="bg-black/40 rounded-full p-2 flex gap-2">
+                    <button onClick={handleFileClick} className="text-white hover:bg-white/10 p-1 rounded">
+                      <Edit2 className="w-4 h-4" />
+                    </button>
+                    {profile.avatarUrl && (
+                      <button onClick={handleDeleteAvatar} className="text-white hover:bg-white/10 p-1 rounded">
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+                <input ref={fileInputRef} type="file" accept="image/*" onChange={handleFileChange} className="hidden" />
               </div>
               <h3 className="text-xl font-bold">{profile.fullName || 'Student User'}</h3>
               <p className="text-sm text-muted-foreground mt-1">{profile.email || 'student@university.edu'}</p>
